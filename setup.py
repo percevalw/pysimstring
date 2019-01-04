@@ -20,7 +20,7 @@ def get_swigdir():
 
 from distutils.core import setup, Extension
 
-if sys.platform.startswith("darwin"):
+if sys.platform.startswith("darwin") or sys.platform.startswith("win") or sys.platform.startswith("cygwin"):
     libs = ['-liconv']
 else:
     # need iconv too but without proper -L adding -liconv here won't always work
