@@ -39,8 +39,8 @@ simstring_module = Extension(
 
 setup(
     name = 'simstring',
-    version = '1.1',
-    author = 'Naoaki Okazaki',
+    version = '1.1.4',
+    author = 'Naoaki Okazaki & Blink Health & Luca Soldaini',
     description = """SimString Python module""",
     ext_modules = [simstring_module],
     py_modules = ["simstring"],
