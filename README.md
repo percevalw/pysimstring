@@ -10,5 +10,4 @@ Windows/Anaconda/VisualStudio specific steps:
 3. Now you can any of these commands to build or install:
   * python setup.py build
   * python setup.py install
-4. NOTE: If there is a failure that 'rc.exe' cannot be found, add the appropriate WindowKits binary path to PATH.  More info on this here:
-  * https://stackoverflow.com/questions/14372706/visual-studio-cant-build-due-to-rc-exe
+4. NOTE: If there is a failure that 'rc.exe' cannot be found, add the appropriate WindowKits binary path to PATH.  More info on this [here](https://stackoverflow.com/questions/14372706/visual-studio-cant-build-due-to-rc-exe).
