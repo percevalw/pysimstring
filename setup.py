@@ -53,7 +53,7 @@ if sys.platform.startswith("darwin"):
     # On recent macos versions (mojave) it is necessary to specify that libc++ is used instead of libstdc++.
     # Furthermore, '-Wl,-undefined,dynamic_lookup' is necessary to link the right libraries.
     libs += ["-stdlib=libc++", '-Wl,-undefined,dynamic_lookup']
-    extra_compile_args = ["-stdlib=libc++"]
+    extra_compile_args = ["-stdlib=libc++", "-fpermissive"]
 
 with open('README.md') as reader:
         readme = reader.read()
