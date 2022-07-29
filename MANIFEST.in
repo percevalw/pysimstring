@@ -1,4 +1,4 @@
-graft quickumls_simstring
-graft quickumls_simstring/simstring
+graft pysimstring
+graft pysimstring/simstring
 global-include *.h
 include README.md

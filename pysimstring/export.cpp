@@ -4,56 +4,33 @@
 #include <iomanip>
 #include <stdlib.h>
 #include <errno.h>
-#include <iconv.h>
-#include <quickumls_simstring/simstring/simstring.h>
+#include <pysimstring/simstring/simstring.h>
+#include <codecvt>
+#include <cassert>
 
 #include "export.h"
 
 #define UTF16   "UTF-16LE"
 #define UTF32   "UTF-32LE"
 
-#ifdef  USE_LIBICONV_GNU
-#define iconv_open      libiconv_open
-#define iconv_convert   libiconv_convert
-#define iconv_close     libiconv_close
-#endif/*USE_LIBICONV_GNU*/
-
-#ifndef ICONV_CONST
-#if defined (WIN32)
-#define ICONV_CONST const
-#else
-#define ICONV_CONST
-#endif
-#endif/*ICONV_CONST*/
-
 #if defined (WIN32)
 #define __SIZEOF_WCHAR_T__ 2
 #endif
 
+#if defined(__APPLE__) || defined(WIN32)
+    typedef wchar_t CHAR_TYPE_16;
+#else
+    typedef uint16_t CHAR_TYPE_16;
+#endif
+#if defined(__APPLE__) || defined(WIN32)
+    typedef wchar_t CHAR_TYPE_32;
+#else
+    typedef uint32_t CHAR_TYPE_32;
+#endif
 
-template <class source_type, class destination_type>
-bool iconv_convert(iconv_t cd, const source_type& src, destination_type& dst)
-{
-    typedef typename source_type::value_type source_char_type;
-    typedef typename destination_type::value_type destination_char_type;
-    
-    const char *inbuf = reinterpret_cast<const char *>(src.c_str());
-    size_t inbytesleft = sizeof(source_char_type) * src.length();
-    while (inbytesleft > 0) {
-        char buffer[1024];
-    char *p = buffer;
-    size_t outbytesleft = 1024;
-    int ret = iconv(cd, (ICONV_CONST char **)&inbuf, &inbytesleft, &p, &outbytesleft);
-    if (ret == -1 && errno != E2BIG) {
-        return false;
-    }
-    dst.append(
-        reinterpret_cast<const destination_char_type*>(buffer),
-        (1024 - outbytesleft) / sizeof(destination_char_type)
-        );
-    }
-    return true;
-}
+typedef std::wstring_convert<std::codecvt_utf8<CHAR_TYPE_16>,CHAR_TYPE_16> CONVERT_16;
+typedef std::wstring_convert<std::codecvt_utf8<CHAR_TYPE_32>,CHAR_TYPE_32> CONVERT_32;
+
 
 int translate_measure(int measure)
 {
@@ -91,9 +68,8 @@ writer::writer(const char *filename, int n, bool be, bool unicode)
             delete gen;
             throw std::invalid_argument(message);
         }
-    m_dbw = dbw;
-    m_gen = gen;
-
+        m_dbw = dbw;
+        m_gen = gen;
     } else {
         writer_type *dbw = new writer_type(*gen, filename);
         if (dbw->fail()) {
@@ -102,8 +78,8 @@ writer::writer(const char *filename, int n, bool be, bool unicode)
             delete gen;
             throw std::invalid_argument(message);
         }
-    m_dbw = dbw;
-    m_gen = gen;
+        m_dbw = dbw;
+        m_gen = gen;
     }
 }
 
@@ -143,23 +119,20 @@ void writer::insert(const char *string)
 {
     if (m_unicode) {
         uwriter_type* dbw = reinterpret_cast<uwriter_type*>(m_dbw);
+        std::wstring_convert<std::codecvt_utf8<wchar_t>,wchar_t> convert;
+        std::wstring str = convert.from_bytes(std::string(string));
 
-    std::wstring str;
-    iconv_t cd = iconv_open("WCHAR_T", "UTF-8");
-    iconv_convert(cd, std::string(string), str);
-    iconv_close(cd);
+        dbw->insert(str);
 
-    dbw->insert(str);
-    if (dbw->fail()) {
+        if (dbw->fail()) {
             throw std::runtime_error(dbw->error());
-    }
-
+        }
     } else {
         writer_type* dbw = reinterpret_cast<writer_type*>(m_dbw);
-    dbw->insert(string);
-    if (dbw->fail()) {
+        dbw->insert(string);
+        if (dbw->fail()) {
             throw std::runtime_error(dbw->error());
-    }
+        }
     }
 }
 
@@ -230,11 +203,10 @@ void retrieve_thru(
     }
 }
 
-template <class char_type, class insert_iterator_type>
+template <class Converter, class char_type, class insert_iterator_type>
 void retrieve_iconv(
     reader_type& dbr,
     const std::string& query,
-    const char *encoding,
     int measure,
     double threshold,
     insert_iterator_type ins
@@ -244,11 +216,9 @@ void retrieve_iconv(
     typedef std::vector<string_type> strings_type;
 
     // Translate the character encoding of the query string from UTF-8 to the target encoding.
-    string_type qstr;
-    iconv_t fwd = iconv_open(encoding, "UTF-8");
-    iconv_convert(fwd, query, qstr);
-    iconv_close(fwd);
-    
+    Converter convert;
+    string_type qstr = convert.from_bytes(query);
+
     strings_type xstrs;
     switch (measure) {
     case exact:
@@ -269,13 +239,10 @@ void retrieve_iconv(
     }
 
     // Translate back the character encoding of retrieved strings into UTF-8.
-    iconv_t bwd = iconv_open("UTF-8", encoding);
     for (typename strings_type::const_iterator it = xstrs.begin();it != xstrs.end();++it) {
-        std::string dst;
-    iconv_convert(bwd, *it, dst);
-    *ins = dst;
+        std::string dst = convert.to_bytes(*it);
+        *ins = dst;
     }
-    iconv_close(bwd);
 }
 
 #if defined(__APPLE__) || defined(WIN32)
@@ -288,31 +255,15 @@ std::vector<std::string> reader::retrieve(const char *query)
     std::vector<std::string> ret;
 
     switch (dbr.char_size()) {
-    case 1:
-        retrieve_thru(dbr, query, this->measure, this->threshold, std::back_inserter(ret));
-        break;
-    case 2:
-#if defined(__APPLE__) || defined(WIN32)
-#if __SIZEOF_WCHAR_T__ == 2
-        retrieve_iconv<wchar_t>(dbr, query, UTF16, this->measure, this->threshold, std::back_inserter(ret));
-#else
-assert(0);
-#endif
-#else
-        retrieve_iconv<uint16_t>(dbr, query, UTF16, this->measure, this->threshold, std::back_inserter(ret));
-#endif
-        break;
-    case 4:
-#if defined(__APPLE__) || defined(WIN32)
-#if __SIZEOF_WCHAR_T__ == 4
-        retrieve_iconv<wchar_t>(dbr, query, UTF32, this->measure, this->threshold, std::back_inserter(ret));
-#else
-assert(0);
-#endif
-#else
-        retrieve_iconv<uint32_t>(dbr, query, UTF32, this->measure, this->threshold, std::back_inserter(ret));
-#endif
-        break;
+        case 1:
+            retrieve_thru(dbr, query, this->measure, this->threshold, std::back_inserter(ret));
+            break;
+        case 2:
+            retrieve_iconv<CONVERT_16, CHAR_TYPE_16>(dbr, query, this->measure, this->threshold, std::back_inserter(ret));
+            break;
+        case 4:
+            retrieve_iconv<CONVERT_32, CHAR_TYPE_32>(dbr, query, this->measure, this->threshold, std::back_inserter(ret));
+            break;
     }
 
     return ret;
@@ -321,41 +272,19 @@ assert(0);
 bool reader::check(const char *query)
 {
     reader_type& dbr = *reinterpret_cast<reader_type*>(m_dbr);
-    
+
     if (dbr.char_size() == 1) {
         std::string qstr = query;
         return dbr.check(qstr, translate_measure(this->measure), this->threshold);
     } else if (dbr.char_size() == 2) {
-#if defined(__APPLE__) || defined(WIN32)
-#if __SIZEOF_WCHAR_T__ == 2
-        std::basic_string<wchar_t> qstr;
-#else
-assert(0);
-        // bogus declaration to keep compiler happy
-        std::basic_string<wchar_t> qstr;
-#endif
-#else
-        std::basic_string<uint16_t> qstr;
-#endif
-        iconv_t fwd = iconv_open(UTF16, "UTF-8");
-        iconv_convert(fwd, std::string(query), qstr);
-        iconv_close(fwd);
+        assert(__SIZEOF_WCHAR_T__ == 2);
+        CONVERT_16 convert;
+        std::basic_string<CHAR_TYPE_16> qstr = convert.from_bytes(query);
         return dbr.check(qstr, translate_measure(this->measure), this->threshold);
     } else if (dbr.char_size() == 4) {
-#if defined(__APPLE__) || defined(WIN32)
-#if __SIZEOF_WCHAR_T__ == 4
-        std::basic_string<wchar_t> qstr;
-#else
-assert(0);
-        // bogus declaration to keep compiler happy
-        std::basic_string<wchar_t> qstr;
-#endif
-#else
-        std::basic_string<uint32_t> qstr;
-#endif
-        iconv_t fwd = iconv_open(UTF32, "UTF-8");
-        iconv_convert(fwd, std::string(query), qstr);
-        iconv_close(fwd);
+        assert(__SIZEOF_WCHAR_T__ == 4);
+        CONVERT_32 convert;
+        std::basic_string<CHAR_TYPE_32> qstr = convert.from_bytes(query);
         return dbr.check(qstr, translate_measure(this->measure), this->threshold);
     }
     

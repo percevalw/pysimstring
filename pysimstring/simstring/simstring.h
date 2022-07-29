@@ -1017,7 +1017,6 @@ public:
         )
     {
         typedef std::vector<string_type> ngrams_type;
-        typedef typename string_type::value_type char_type;
 
         ngram_generator_type gen(m_ngram_unit, m_be);
         ngrams_type ngrams;
