@@ -4,7 +4,7 @@
 #include <iomanip>
 #include <stdlib.h>
 #include <errno.h>
-#include <quickumls_simstring/simstring/simstring.h>
+#include <pysimstring/simstring/simstring.h>
 #include <codecvt>
 #include <cassert>
 

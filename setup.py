@@ -10,18 +10,23 @@ import os.path
 from distutils.core import setup, Extension
 from distutils.command.install_lib import install_lib as _install_lib
 
+
 # PACKAGES = find_packages()
 
 def get_rootdir():
     return os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+
+
 def get_includedir():
     return '.'
+
 
 def get_swigdir():
     return os.path.join(get_rootdir(), 'swig')
 
-#import os; os.environ['CC'] = 'g++'; os.environ['CXX'] = 'g++';
-#os.environ['CPP'] = 'g++'; os.environ['LDSHARED'] = 'g++'
+
+# import os; os.environ['CC'] = 'g++'; os.environ['CXX'] = 'g++';
+# os.environ['CPP'] = 'g++'; os.environ['LDSHARED'] = 'g++'
 
 def batch_rename(src, dst, src_dir_fd=None, dst_dir_fd=None):
     '''Same as os.rename, but returns the renaming result.'''
@@ -29,6 +34,7 @@ def batch_rename(src, dst, src_dir_fd=None, dst_dir_fd=None):
               src_dir_fd=src_dir_fd,
               dst_dir_fd=dst_dir_fd)
     return dst
+
 
 class _CommandInstallCythonized(_install_lib):
     def __init__(self, *args, **kwargs):
@@ -44,6 +50,7 @@ class _CommandInstallCythonized(_install_lib):
         return [batch_rename(file, re.sub(matcher, '.so', file))
                 for file in outfiles]
 
+
 additional_include_dirs = []
 library_dirs = None
 extra_compile_args = None
@@ -56,36 +63,35 @@ if sys.platform.startswith("darwin"):
     extra_compile_args = ["-stdlib=libc++"]
 
 with open('README.md') as reader:
-        readme = reader.read()
+    readme = reader.read()
 
 simstring_module = Extension(
-    'quickumls_simstring._simstring',
-    sources = [
-        'quickumls_simstring/export.cpp',
-        'quickumls_simstring/export_wrap.cpp',
+    'pysimstring._simstring',
+    sources=[
+        'pysimstring/export.cpp',
+        'pysimstring/export_wrap.cpp',
     ],
     include_dirs=[get_includedir()] + additional_include_dirs,
     library_dirs=library_dirs,
     extra_link_args=libs,
     extra_compile_args=extra_compile_args,
     language='c++',
-    )
+)
 
 setup(
-    name = 'quickumls_simstring',
-    url = 'https://github.com/Georgetown-IR-Lab/simstring',
-    version = '1.1.5r1',
+    name='pysimstring',
+    url='https://github.com/percevalw/simstring',
+    version='1.2.0b',
     description=(
-        'Clone of simstring designed to work with QuickUMLS. ' 
-        'Original version here: http://chokkan.org/software/simstring/'
+        'Easy to install clone of simstring'
+        'Forked from github.com/Georgetown-IR-Lab/simstring'
     ),
     long_description=readme,
-    packages=['quickumls_simstring'],
-    author = 'Naoaki Okazaki & Blink Health & Luca Soldaini',
-    author_email = 'luca@ir.cs.georgetown.edu',
-    ext_modules = [simstring_module],
+    packages=['pysimstring'],
+    author='Naoaki Okazaki & Blink Health & Luca Soldaini & Perceval Wajsburt',
+    author_email='perceval.wajsburt@sorbonne-universite.fr',
+    ext_modules=[simstring_module],
     cmdclass={
         'install_lib': _CommandInstallCythonized,
     },
 )
-
