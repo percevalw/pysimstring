@@ -81,7 +81,7 @@ simstring_module = Extension(
 setup(
     name='pysimstring',
     url='https://github.com/percevalw/simstring',
-    version='1.2.0b',
+    version='1.2.0',
     description=(
         'Easy to install clone of simstring'
     ),
