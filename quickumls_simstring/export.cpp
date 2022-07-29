@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <quickumls_simstring/simstring/simstring.h>
 #include <codecvt>
+#include <cassert>
 
 #include "export.h"
 
