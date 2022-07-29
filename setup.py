@@ -59,7 +59,7 @@ with open('README.md') as reader:
         readme = reader.read()
 
 simstring_module = Extension(
-    'quickumls_simstring/_simstring',
+    'quickumls_simstring._simstring',
     sources = [
         'quickumls_simstring/export.cpp',
         'quickumls_simstring/export_wrap.cpp',
