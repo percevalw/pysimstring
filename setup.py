@@ -81,13 +81,13 @@ simstring_module = Extension(
 setup(
     name='pysimstring',
     url='https://github.com/percevalw/simstring',
-    version='1.2.0',
+    version='1.2.1',
     description=(
         'Easy to install clone of simstring'
     ),
     long_description=readme,
     packages=['pysimstring'],
-    author='Naoaki Okazaki & Blink Health & Luca Soldaini & Perceval Wajsburt',
+    author='Naoaki Okazaki & Blink Health & Luca Soldaini & Perceval Wajsbürt',
     author_email='perceval.wajsburt@sorbonne-universite.fr',
     ext_modules=[simstring_module],
     cmdclass={
