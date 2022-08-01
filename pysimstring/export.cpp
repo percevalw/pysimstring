@@ -20,12 +20,12 @@
 #if defined(__APPLE__) || defined(WIN32)
     typedef wchar_t CHAR_TYPE_16;
 #else
-    typedef uint16_t CHAR_TYPE_16;
+    typedef char16_t CHAR_TYPE_16;
 #endif
 #if defined(__APPLE__) || defined(WIN32)
     typedef wchar_t CHAR_TYPE_32;
 #else
-    typedef uint32_t CHAR_TYPE_32;
+    typedef char32_t CHAR_TYPE_32;
 #endif
 
 typedef std::wstring_convert<std::codecvt_utf8<CHAR_TYPE_16>,CHAR_TYPE_16> CONVERT_16;
