@@ -1,3 +1,5 @@
+[![Tests](https://github.com/percevalw/pysimstring/actions/workflows/tests.yml/badge.svg?branch=master)](https://github.com/percevalw/pysimstring/actions/workflows/tests.yml)
+
 # SimString Python Package
 
 Orginal version by [chokkan](https://github.com/chokkan/simstring) and [QuickUMLS](https://github.com/Georgetown-IR-Lab/simstring).
