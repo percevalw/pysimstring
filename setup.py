@@ -89,6 +89,7 @@ setup(
     packages=['pysimstring'],
     author='Naoaki Okazaki & Blink Health & Luca Soldaini & Perceval Wajsbürt',
     author_email='perceval.wajsburt@sorbonne-universite.fr',
+    license='BSD-3-Clause',
     ext_modules=[simstring_module],
     cmdclass={
         'install_lib': _CommandInstallCythonized,
