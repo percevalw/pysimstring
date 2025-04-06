@@ -87,6 +87,7 @@ setup(
     ),
     long_description=readme,
     packages=['pysimstring'],
+    license_files = ('LICENSE',),
     author='Naoaki Okazaki & Blink Health & Luca Soldaini & Perceval Wajsbürt',
     author_email='perceval.wajsburt@sorbonne-universite.fr',
     ext_modules=[simstring_module],
