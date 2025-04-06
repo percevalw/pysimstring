@@ -10,17 +10,43 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-20.04, windows-2019, macos-10.15]
-        python-version: ["3.7", "3.8", "3.9"]
+        include:
+          - { os: ubuntu-22.04, py: "3.7", arch: x64 }
+          - { os: ubuntu-22.04, py: "3.8", arch: x64 }
+          - { os: ubuntu-22.04, py: "3.9", arch: x64 }
+          - { os: ubuntu-22.04, py: "3.10", arch: x64 }
+          - { os: ubuntu-22.04, py: "3.11", arch: x64 }
+          - { os: ubuntu-22.04, py: "3.12", arch: x64 }
+          - { os: ubuntu-22.04, py: "3.13", arch: x64 }
+          - { os: macos-13, py: "3.7", arch: x64 }
+          - { os: macos-13, py: "3.8", arch: x64 }
+          - { os: macos-13, py: "3.9", arch: x64 }
+          - { os: macos-13, py: "3.10", arch: x64 }
+          - { os: macos-13, py: "3.11", arch: x64 }
+          - { os: macos-13, py: "3.12", arch: x64 }
+          - { os: macos-13, py: "3.13", arch: x64 }
+          - { os: macos-latest, py: "3.8", arch: arm64 }
+          - { os: macos-latest, py: "3.9", arch: arm64 }
+          - { os: macos-latest, py: "3.10", arch: arm64 }
+          - { os: macos-latest, py: "3.11", arch: arm64 }
+          - { os: macos-latest, py: "3.12", arch: arm64 }
+          - { os: macos-latest, py: "3.13", arch: arm64 }
+          - { os: windows-latest, py: "3.7", arch: x64 }
+          - { os: windows-latest, py: "3.8", arch: x64 }
+          - { os: windows-latest, py: "3.9", arch: x64 }
+          - { os: windows-latest, py: "3.10", arch: x64 }
+          - { os: windows-latest, py: "3.11", arch: x64 }
+          - { os: windows-latest, py: "3.12", arch: x64 }
+          - { os: windows-latest, py: "3.13", arch: x64 }
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
-          python-version: ${{ matrix.python-version }}
-          architecture: x64
+          python-version: ${{ matrix.py }}
+          architecture: ${{ matrix.arch }}
       - name: Install dependencies
         run: |
           pip install pytest
@@ -28,5 +54,5 @@ jobs:
           gcc --version
           pip install -e . --verbose
 
-      - name: Test with Pytest on Python ${{ matrix.python-version }}
+      - name: Test with Pytest on Python ${{ matrix.py }}, ${{ matrix.platform }} ${{ matrix.arch }}
         run: python -m pytest
